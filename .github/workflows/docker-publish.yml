@@ -1,21 +1,24 @@
-name: Docker Image CI
+name: Create and publish a Docker image
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
+env:
+  IMAGE: ghcr.io/sagolubev/runners:latest
+    
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
 
     steps:
     - uses: actions/checkout@v4
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ghcr.io/sagolubev/runners:latest
+      run: docker build . --file Dockerfile --tag $IMAGE
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v3
       with:
@@ -23,5 +26,5 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Push the Docker image
-      run: docker push ghcr.io/sagolubev/runners:latest
+      run: docker push $IMAGE
 
