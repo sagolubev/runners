@@ -1,52 +1,18 @@
----
-name: Publish Docker images
+name: Docker Image CI
+
 on:
   push:
-    branches: [master]
-  workflow_dispatch:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
 jobs:
-  push-to-registry:
+
+  build:
+
     runs-on: ubuntu-latest
-    env:
-      REPO_URL: ghcr.io
-      REPO_PROJECT: sagolubev
-    strategy:
-      matrix:
-        image: [runners]
+
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v4
-      
-      # login to registry
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          # username: ${{ github.actor }}
-          # password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build
-        env:
-          IMAGE: ${{ matrix.image }}
-        run: |
-          # set -x
-          docker build -t $REPO_URL/$REPO_PROJECT/$IMAGE $IMAGE/.
-      
-      - name: Tag
-        env:
-          IMAGE: ${{ matrix.image }}
-        run: |
-          # set -x
-          VERSION=$(cat $IMAGE/VERSION)
-          echo $VERSION
-          docker tag $REPO_URL/$REPO_PROJECT/$IMAGE:latest $REPO_URL/$REPO_PROJECT/$IMAGE:$VERSION
-      
-      - name: Push images
-        env:
-          IMAGE: ${{ matrix.image }}
-        run: |
-          # set -x
-          VERSION=$(cat $IMAGE/VERSION)
-          docker push $REPO_URL/$REPO_PROJECT/$IMAGE:latest
-          docker push $REPO_URL/$REPO_PROJECT/$IMAGE:$VERSION
-
+    - uses: actions/checkout@v4
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag runners:latest
